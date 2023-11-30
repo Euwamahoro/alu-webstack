@@ -15,7 +15,7 @@ display_info() {
     fi
 }
 
-DOMAIN="holberton.online"
+DOMAIN="nazaa.tech"
 
 # If only domain parameter is provided
 if [ $# -eq 1 ]; then
