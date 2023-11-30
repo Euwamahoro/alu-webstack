@@ -1,34 +1,20 @@
 #!/usr/bin/env bash
-# Function to display information for a subdomain
-display_info() {
-    local subdomain=$1
-    local domain=$2
+# This script will get the subdomains of a domain and print them out
+# Usage: ./0-world_wide_web <domain> <subdomain>
 
-    echo -n "The subdomain $subdomain.$domain is a"
-    local record_type=$(dig +short $subdomain.$domain | awk 'NR==1 {print $4}')
-    
-    if [ -z "$record_type" ]; then
-        echo " (No records found)"
-    else
-        local destination=$(dig +short $subdomain.$domain)
-        echo " $record_type record and points to $destination"
-    fi
+get_subdomains() {
+	domain="$1"
+	subdomain="$2"
+	subdomains=("www" "lb-01" "web-01" "web-02")
+	if [ "$subdomain" ]; then
+		ip=$(dig "$subdomain.$domain" | awk '/^;; ANSWER SECTION:$/ { getline; print $5 }')
+		echo "The subdomain $subdomain is a A record and points to $ip"
+	else
+		for sub in "${subdomains[@]}"; do
+			ip=$(dig "$sub.$domain" | awk '/^;; ANSWER SECTION:$/ { getline; print $5 }')
+			echo "The subdomain $sub is a A record and points to $ip"
+		done
+	fi
 }
 
-DOMAIN="nazaa.tech"
-
-# If only domain parameter is provided
-if [ $# -eq 1 ]; then
-    SUBDOMAINS=("www" "lb-01" "web-01" "web-02")
-
-    # Display information for each subdomain
-    for SUBDOMAIN in "${SUBDOMAINS[@]}"; do
-        display_info $SUBDOMAIN $DOMAIN
-    done
-fi
-
-# If both domain and subdomain parameters are provided
-if [ $# -eq 2 ]; then
-    SUBDOMAIN=$2
-    display_info $SUBDOMAIN $DOMAIN
-fi
+get_subdomains "$1" "$2"
