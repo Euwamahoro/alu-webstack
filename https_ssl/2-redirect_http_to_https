@@ -1,0 +1,34 @@
+# /etc/haproxy/haproxy.cfg
+
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    user haproxy
+    group haproxy
+
+defaults
+    log global
+    mode http
+    option httplog
+    option dontlognull
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+
+frontend lb-frontend
+    bind *:443 ssl crt /etc/letsencrypt/live/www.nazaa.tech/fullchain.pem
+    http-request add-header X-Forwarded-Proto https
+    default_backend lb-backend
+
+backend lb-backend
+    balance roundrobin
+    server web-01 100.26.36.87:80 check
+    server web-02 54.90.105.165:80 check
+
+# New frontend section to redirect HTTP to HTTPS
+frontend http-redirect
+    bind *:80
+    mode http
+    option forwardfor
+    reqadd X-Forwarded-Proto:\ http
+    redirect scheme https code 301 if !{ ssl_fc }
